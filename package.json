@@ -1,0 +1,24 @@
+{
+  "name": "pcg",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "volta": {
+    "node": "20.10.0"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.7.0",
+    "commander": "^11.1.0",
+    "kleur": "^4.1.5"
+  },
+  "devDependencies": {
+    "@vnphanquang/pcg": "^0.0.4"
+  }
+}
