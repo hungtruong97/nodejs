@@ -1,7 +1,7 @@
 /** WORK IN PROGRESS. MUCH TO IMPROVE */
 import { Command } from "commander";
 
-import { readFileSync } from "fs";
+import { readFileSync, writeFileSync } from "fs";
 import { fileURLToPath } from "url";
 import { resolve, dirname } from "path";
 import {
@@ -15,7 +15,6 @@ import {
   cancel,
 } from "@clack/prompts";
 import { setTimeout as sleep } from "timers/promises";
-import { exit } from "process";
 import { underline, blue } from "kleur/colors";
 
 /**
@@ -50,21 +49,18 @@ program.name("buddha").action(() => {
   console.log(blue(txt));
 });
 
+//Generating profile card.
 program
   .command("gen")
   .description("Generate a profile card ")
-  .option(
-    "-t, --template <type>",
-    'output template to use for output, one of {"svg", "txt"}; defaults to "txt"',
-    "txt"
-  ) // we will just do txt for now
+  .option("-o, --output <type>", "write output to file if specified", "txt")
   .requiredOption("-n, --name <type>", "name to print on card")
   .requiredOption("-e, --email <type>", "email to print on card")
   .option("-c, --company <type>", "company to print on card")
   .action((options) => {
     const validateEmailRegex = /^\S+@\S+\.\S+$/;
     const length = 50;
-    const logo = readFileSync(resolvePath("./templates/logo.txt"), "utf-8");
+    const logo = readFileSync(resolvePath("./templates/4d.txt"), "utf-8");
     const logoLines = logo.split("\n");
 
     const printDashedLine = (length, top = true) => {
@@ -91,18 +87,36 @@ program
       return;
     }
 
-    console.log(logoLines);
+    const stripAnsiColorCodes = (text) => {
+      return text.replace(/\x1B\[\d+m/g, "");
+    };
 
-    console.log(
+    const data =
       `${printDashedLine(length)}\n` +
-        logoLines.map((line) => printLine(line, length, true)).join("") +
-        `${printLine(" Name: " + options.name, length)}` +
-        `${printLine(" Email: " + options.email, length)}` +
-        `${printLine(" Company: " + (options.company || "N/A"), length)}` +
-        `${printDashedLine(length, false)}`
-    );
+      logoLines.map((line) => printLine(line, length, true)).join("") +
+      `${printLine(" Name: " + options.name, length)}` +
+      `${printLine(" Email: " + options.email, length)}` +
+      `${printLine(" Company: " + (options.company || "N/A"), length)}` +
+      `${printDashedLine(length, false)}`;
+
+    const svgData = `
+      <svg width="500" height="400" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="500" height="400" x="50" y="50" fill="none" stroke="black" stroke-width="5" />
+        <text x="250" y="200" text-anchor="middle">${options.name}</text>
+      </svg>
+     `;
+
+    if (options.output === "txt") {
+      writeFileSync(
+        resolvePath("./templates/card.txt"),
+        stripAnsiColorCodes(data)
+      );
+    } else {
+      writeFileSync(resolvePath("./templates/card.svg"), svgData);
+    }
   });
 
+//Create a wizard for generating profile card.
 program.command("wizard").action(async () => {
   intro(
     "Wizard for creating a profile card. Just follow instructions and you will be golden"
