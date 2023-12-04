@@ -1,6 +1,12 @@
 {
-  "name": "pcg",
+  "name": "@hungtruong97/bcg",
   "version": "1.0.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "bin"
+  ],
   "description": "",
   "main": "index.js",
   "type": "module",
