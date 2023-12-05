@@ -87,6 +87,7 @@ program
       return;
     }
 
+    //Strip ansi color codes
     const stripAnsiColorCodes = (text) => {
       return text.replace(/\x1B\[\d+m/g, "");
     };
@@ -106,6 +107,10 @@ program
       </svg>
      `;
 
+    //Print out data in console
+    console.log(data);
+
+    //Create output file if specified
     if (options.output === "txt") {
       writeFileSync(
         resolvePath("./templates/card.txt"),
