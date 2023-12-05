@@ -145,84 +145,83 @@ program.command("wizard").action(async () => {
     )}${vertical}\n`;
   };
 
-  //Ask for name
-  const name = await text({
-    message: "What is your name?",
-    placeholder: "Enter your name",
-    validate(input) {
-      if (input.length === 0) return `Your name is required`;
-    },
-  });
+  let isConfirmed;
+  while (isConfirmed === false || isConfirmed === undefined) {
+    //Ask for name
+    const name = await text({
+      message: "What is your name?",
+      placeholder: "Enter your name",
+      validate(input) {
+        if (input.length === 0) return `Your name is required`;
+      },
+    });
 
-  //Ask for email
-  const email = await text({
-    message: "What is your email?",
-    placeholder: "Enter your email",
-    validate(input) {
-      if (input.length === 0) return `Your email is required`;
-      if (!validateEmailRegex.test(input))
-        return `Please enter a valid email address`;
-    },
-  });
+    //Ask for email
+    const email = await text({
+      message: "What is your email?",
+      placeholder: "Enter your email",
+      validate(input) {
+        if (input.length === 0) return `Your email is required`;
+        if (!validateEmailRegex.test(input))
+          return `Please enter a valid email address`;
+      },
+    });
 
-  //Ask for company
-  const selectCompany = await select({
-    message: "Which is your company?",
-    options: [
-      { value: "4D", label: "4Digit" },
-      { value: "Google", label: "Google" },
-      { value: "None", label: `I'm Batman` },
-    ],
-  });
+    //Ask for company
+    const selectCompany = await select({
+      message: "Which is your company?",
+      options: [
+        { value: "4D", label: "4Digit" },
+        { value: "Google", label: "Google" },
+        { value: "None", label: `I'm Batman` },
+      ],
+    });
 
-  switch (selectCompany) {
-    case "4D":
-      logo = readFileSync(resolvePath("./templates/4d.txt"), "utf-8");
-      logoLines = logo.split("\n");
-      break;
-    case "Google":
-      logo = readFileSync(resolvePath("./templates/google.txt"), "utf-8");
-      logoLines = logo.split("\n");
-      break;
-    case "None":
-      logo = readFileSync(resolvePath("./templates/bat.txt"), "utf-8");
-      logoLines = logo.split("\n");
-      break;
-  }
-
-  //Ask for confirmation
-  const confirmation = await confirm({
-    message: `\nYour name is ${name}.\n Your email is ${email}.\n Your company is ${selectCompany}.\n Do you want to continue?\n`,
-  });
-
-  if (isCancel(confirmation)) {
-    cancel("Card cancelled");
-    process.exit(0);
-  }
-
-  if (confirmation) {
-    //Create spinner
-    const s = spinner();
-    try {
-      s.start("Generating card");
-      await sleep(1000);
-      s.stop("Card generated");
-      console.log(
-        `\nHere is your card:\n` +
-          `${printDashedLine(length)}\n` +
-          logoLines.map((line) => printLine(line, length, true)).join("") +
-          `${printLine(" Name: " + name, length)}` +
-          `${printLine(" Email: " + email, length)}` +
-          `${printLine(" Company: " + (selectCompany || "N/A"), length)}` +
-          `${printDashedLine(length, false)}`
-      );
-      outro("Thanks for using our card generator");
-    } catch (err) {
-      console.log(err);
+    switch (selectCompany) {
+      case "4D":
+        logo = readFileSync(resolvePath("./templates/4d.txt"), "utf-8");
+        logoLines = logo.split("\n");
+        break;
+      case "Google":
+        logo = readFileSync(resolvePath("./templates/google.txt"), "utf-8");
+        logoLines = logo.split("\n");
+        break;
+      case "None":
+        logo = readFileSync(resolvePath("./templates/bat.txt"), "utf-8");
+        logoLines = logo.split("\n");
+        break;
     }
-  } else {
-    console.log("Card cancelled");
-    outro("Thanks for using our card generator");
+
+    //Ask for confirmation
+    const confirmation = await confirm({
+      message: `\nYour name is ${name}.\n Your email is ${email}.\n Your company is ${selectCompany}.\n Do you want to continue?\n`,
+    });
+
+    if (confirmation) {
+      //Create spinner
+      const s = spinner();
+      try {
+        s.start("Generating card");
+        await sleep(1000);
+        s.stop("Card generated");
+        console.log(
+          `\nHere is your card:\n` +
+            `${printDashedLine(length)}\n` +
+            logoLines.map((line) => printLine(line, length, true)).join("") +
+            `${printLine(" Name: " + name, length)}` +
+            `${printLine(" Email: " + email, length)}` +
+            `${printLine(" Company: " + (selectCompany || "N/A"), length)}` +
+            `${printDashedLine(length, false)}`
+        );
+        outro("Thanks for using our card generator");
+        isConfirmed = true;
+      } catch (err) {
+        console.log(err);
+      }
+    } else {
+      // console.log("Card cancelled");
+      // outro("Thanks for using our card generator");
+    }
   }
 });
 
