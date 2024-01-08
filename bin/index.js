@@ -175,11 +175,13 @@ program
       )}${vertical}\n`;
     };
 
+    //Print a card from of a random item
+    const randomId = Math.floor((Math.random() + 0.001) * data.length);
     const card =
       `${printDashedLine(length)}\n` +
       logoLines.map((line) => printLine(line, length, true)).join("") +
-      `${printLine(" Name: " + data[0].name, length)}` +
-      `${printLine(" Email: " + data[0].email, length)}` +
+      `${printLine(" Name: " + data[randomId].name, length)}` +
+      `${printLine(" Email: " + data[randomId].email, length)}` +
       `${printDashedLine(length, false)}`;
 
     console.log(card);
@@ -188,9 +190,27 @@ program
 //Add a new user to the database
 program
   .command("post")
+  .description("Add new users")
   .requiredOption("-e, --email <email>")
   .requiredOption("-n, --name <name>")
   .action(async (options) => {
+    const validateEmailRegex = /^\S+@\S+\.\S+$/;
+    const validateNameRegex = /^[A-Za-z]+ [A-Za-z]+$/;
+
+    //validate email
+    if (!validateEmailRegex.test(options.email)) {
+      console.log("Please enter a valid email address");
+      return;
+    }
+
+    //Validate name
+    if (!validateNameRegex.test(options.name)) {
+      console.log(
+        `Please enter a valid name following the format "First_Name Last_Name"`
+      );
+      return;
+    }
+
     await post(options.email, options.name);
   });
 
