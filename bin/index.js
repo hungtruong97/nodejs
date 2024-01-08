@@ -1,5 +1,6 @@
 /** WORK IN PROGRESS. MUCH TO IMPROVE */
 import { Command } from "commander";
+import { get, post } from "./analytics.js";
 
 import { readFileSync, writeFileSync } from "fs";
 import { fileURLToPath } from "url";
@@ -140,6 +141,57 @@ program
     } else if (options.output === "svg") {
       writeFileSync(resolvePath("./templates/card.svg"), svgData);
     }
+  });
+
+//Generate stats
+program
+  .command("stats")
+  .description("Generate stats")
+  .action(async () => {
+    const { data, totalCount } = await get();
+    console.log(
+      `pcg has been executed for ${totalCount} times, by ${data.length} users. Here's one of them: `
+    );
+    const length = 50;
+    const logo = readFileSync(resolvePath("./templates/bat.txt"), "utf-8");
+    const logoLines = logo.split("\n");
+
+    const printDashedLine = (length, top = true) => {
+      const dash = "\u2500";
+      const cornerTopLeft = "\u250C";
+      const cornerTopRight = "\u2510";
+      const cornerBottomLeft = "\u2514";
+      const cornerBottomRight = "\u2518";
+      if (!top)
+        return `${cornerBottomLeft}${dash.repeat(length)}${cornerBottomRight}`;
+      return `${cornerTopLeft}${dash.repeat(length)}${cornerTopRight}`;
+    };
+
+    const printLine = (text, length, isColor = false) => {
+      const vertical = "\u2502";
+      const space = "\u0020";
+      return `${vertical}${isColor ? blue(text) : text}${space.repeat(
+        length - text.length
+      )}${vertical}\n`;
+    };
+
+    const card =
+      `${printDashedLine(length)}\n` +
+      logoLines.map((line) => printLine(line, length, true)).join("") +
+      `${printLine(" Name: " + data[0].name, length)}` +
+      `${printLine(" Email: " + data[0].email, length)}` +
+      `${printDashedLine(length, false)}`;
+
+    console.log(card);
+  });
+
+//Add a new user to the database
+program
+  .command("post")
+  .requiredOption("-e, --email <email>")
+  .requiredOption("-n, --name <name>")
+  .action(async (options) => {
+    await post(options.email, options.name);
   });
 
 //Create a wizard for generating profile card.
