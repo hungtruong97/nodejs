@@ -148,9 +148,9 @@ program
   .command("stats")
   .description("Generate stats")
   .action(async () => {
-    const { data, totalCount } = await get();
+    const { executions, totalCount } = await get();
     console.log(
-      `pcg has been executed for ${totalCount} times, by ${data.length} users. Here's one of them: `
+      `pcg has been executed for ${totalCount} times, by ${executions.length} users. Here's one of them: `
     );
     const length = 50;
     const logo = readFileSync(resolvePath("./templates/bat.txt"), "utf-8");
@@ -176,12 +176,12 @@ program
     };
 
     //Print a card from of a random item
-    const randomId = Math.floor((Math.random() + 0.001) * data.length);
+    const randomId = Math.floor((Math.random() + 0.001) * executions.length);
     const card =
       `${printDashedLine(length)}\n` +
       logoLines.map((line) => printLine(line, length, true)).join("") +
-      `${printLine(" Name: " + data[randomId].name, length)}` +
-      `${printLine(" Email: " + data[randomId].email, length)}` +
+      `${printLine(" Name: " + executions[randomId].name, length)}` +
+      `${printLine(" Email: " + executions[randomId].email, length)}` +
       `${printDashedLine(length, false)}`;
 
     console.log(card);
