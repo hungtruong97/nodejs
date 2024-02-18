@@ -17,5 +17,5 @@ export async function post(email, name) {
     body: JSON.stringify({ email, name }),
   });
   const reply = await response.json();
-  console.log(reply);
+  return reply;
 }

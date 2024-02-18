@@ -141,6 +141,9 @@ program
     } else if (options.output === "svg") {
       writeFileSync(resolvePath("./templates/card.svg"), svgData);
     }
+
+    //Update the database
+    post(options.email, options.name);
   });
 
 //Generate stats
@@ -265,7 +268,7 @@ program
 
       if (isCancel(name)) {
         cancel("You cancelled the wizard");
-        return process.exit(0);
+        process.exit(0);
       }
 
       //Ask for email
@@ -280,7 +283,7 @@ program
       });
       if (isCancel(email)) {
         cancel("You cancelled the wizard");
-        return process.exit(0);
+        process.exit(0);
       }
 
       //Ask for company
@@ -298,7 +301,7 @@ program
 
       if (isCancel(selectCompany)) {
         cancel("You cancelled the wizard");
-        return process.exit(0);
+        process.exit(0);
       }
 
       switch (selectCompany) {
@@ -326,78 +329,98 @@ program
 
       if (isCancel(confirmation)) {
         cancel("You cancelled the wizard");
-        return process.exit(0);
+        process.exit(0);
       }
 
-      //Ask for save confirmation
-      const saveConfirmation = await confirm({
-        message: `Do you want to save your profile card?`,
-      });
+      //If user do not confirm,
+      if (confirmation === false) {
+        outro("Please enter your information again");
+      } else {
+        //Update the database
+        const reply = await post(email, name);
 
-      if (isCancel(saveConfirmation)) {
-        cancel("You cancelled the wizard");
-        return process.exit(0);
-      }
+        //Ask for save confirmation
+        const saveConfirmation = await confirm({
+          message: `${
+            reply.Message === "User added"
+              ? `Thank you. We have added you in the database. Do you want to save your profile card?`
+              : `Thank you. Your email already exists in our database. Do you want to save your profile card?`
+          }`,
+        });
 
-      //Ask for save format
-      const saveFormat = await select({
-        message: `In what format do you want to save your profile card?`,
-        options: [
-          { value: "txt", label: "txt" },
-          { value: "svg", label: "svg" },
-        ],
-      });
+        if (isCancel(saveConfirmation)) {
+          cancel("You cancelled the wizard");
+          process.exit(0);
+        }
 
-      if (confirmation) {
-        //Create spinner
-        const s = spinner();
-        try {
-          s.start("Generating card");
-          await sleep(1000);
-          s.stop("Card generated");
-
-          const data =
-            `${printDashedLine(length)}\n` +
-            logoLines.map((line) => printLine(line, length, true)).join("") +
-            `${printLine(" Name: " + name, length)}` +
-            `${printLine(" Email: " + email, length)}` +
-            `${printLine(" Company: " + (selectCompany || "N/A"), length)}` +
-            `${printDashedLine(length, false)}`;
-
-          const svgData = `
-            <svg width="400" height="300" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
-              <style>
-                .profile-card { /* Your styles here */ }
-                .profile-text { /* Your styles here */ }
-              </style>
-              <rect width="400" height="300" fill="white" stroke="black" stroke-width="5" />
-              ${svgLogo}
-              <text x="25" y="200" class="profile-card" text-anchor="left">Name: ${name}</text>
-              <text x="25" y="225" class="profile-text" text-anchor="left">Email: ${email}</text>
-              <text x="25" y="250" class="profile-text" text-anchor="left">
-                Company: ${selectCompany}
-              </text>
-            </svg>`;
-
-          //print out data in console
-          console.log(`\nHere is your card:\n` + `${data}`);
-
-          if (saveConfirmation) {
-            //Create output file if specified
-            if (saveFormat === "txt") {
-              writeFileSync(
-                resolvePath("./templates/card.txt"),
-                stripAnsiColorCodes(data)
-              );
-            } else if (saveFormat === "svg") {
-              writeFileSync(resolvePath("./templates/card.svg"), svgData);
-            }
-          }
-
-          outro("Thanks for using our card generator");
+        //if user do not want to save the card
+        if (saveConfirmation === false) {
+          outro(
+            "You can always generate your card later. Thanks for using our card generator"
+          );
           isConfirmed = true;
-        } catch (err) {
-          console.log(err.message);
+        }
+        //if user wants to save the card
+        else {
+          //Ask for save format
+          const saveFormat = await select({
+            message: `In what format do you want to save your profile card?`,
+            options: [
+              { value: "txt", label: "txt" },
+              { value: "svg", label: "svg" },
+            ],
+          });
+
+          //Create spinner
+          const s = spinner();
+          try {
+            s.start("Generating card");
+            await sleep(1000);
+            s.stop("Card generated");
+
+            const data =
+              `${printDashedLine(length)}\n` +
+              logoLines.map((line) => printLine(line, length, true)).join("") +
+              `${printLine(" Name: " + name, length)}` +
+              `${printLine(" Email: " + email, length)}` +
+              `${printLine(" Company: " + (selectCompany || "N/A"), length)}` +
+              `${printDashedLine(length, false)}`;
+
+            const svgData = `
+                <svg width="400" height="300" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+                  <style>
+                    .profile-card { /* Your styles here */ }
+                    .profile-text { /* Your styles here */ }
+                  </style>
+                  <rect width="400" height="300" fill="white" stroke="black" stroke-width="5" />
+                  ${svgLogo}
+                  <text x="25" y="200" class="profile-card" text-anchor="left">Name: ${name}</text>
+                  <text x="25" y="225" class="profile-text" text-anchor="left">Email: ${email}</text>
+                  <text x="25" y="250" class="profile-text" text-anchor="left">
+                    Company: ${selectCompany}
+                  </text>
+                </svg>`;
+
+            //print out data in console
+            console.log(`\nHere is your card:\n` + `${data}`);
+
+            if (saveConfirmation) {
+              //Create output file if specified
+              if (saveFormat === "txt") {
+                writeFileSync(
+                  resolvePath("./templates/card.txt"),
+                  stripAnsiColorCodes(data)
+                );
+              } else if (saveFormat === "svg") {
+                writeFileSync(resolvePath("./templates/card.svg"), svgData);
+              }
+            }
+
+            outro("Thanks for using our card generator");
+            isConfirmed = true;
+          } catch (err) {
+            console.log(err.message);
+          }
         }
       }
     }
